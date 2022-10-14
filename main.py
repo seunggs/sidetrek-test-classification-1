@@ -35,7 +35,7 @@ batch_size_test = 1000
 learning_rate = 0.01
 momentum = 0.5
 log_interval = 10
-random_seed = 66
+random_seed = 42
 
 torch.backends.cudnn.enabled = False
 torch.manual_seed(random_seed)
