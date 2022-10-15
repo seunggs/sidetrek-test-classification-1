@@ -106,8 +106,6 @@ def train(epoch):
       train_losses.append(loss.item())
       train_counter.append(
         (batch_idx*64) + ((epoch-1)*len(train_loader.dataset)))
-      torch.save(network.state_dict(), 'model.pth')
-      torch.save(optimizer.state_dict(), 'optimizer.pth')
 
 
 # Testing model on test data
@@ -163,3 +161,7 @@ for i in range(9):
   plt.xticks([])
   plt.yticks([])
 plt.savefig('prediction.png')
+
+# Saving model
+torch.save(network.state_dict(), 'model.pth')
+torch.save(optimizer.state_dict(), 'optimizer.pth')
