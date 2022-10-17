@@ -149,10 +149,10 @@ def create_training_loop(n_epochs: int, network: PythonPickledFile, train_loader
       100. * correct / len(test_loader.dataset)))
     print(result)
     return result, test_losses
+  result, test_losses = test()
   for epoch in range(1, n_epochs + 1):
     train(epoch)
     test()
-  result, test_losses = test()
   return result, test_counter, test_losses
 
 result, test_counter, test_losses = create_training_loop(n_epochs, network, train_loader, test_loader)
@@ -162,10 +162,10 @@ result, test_counter, test_losses = create_training_loop(n_epochs, network, trai
 def save_loss(train_counter: int, train_losses: List[float], test_counter: List[int], test_losses: List[float]) -> str:
   fig = plt.figure(figsize=(8,5))
   plt.plot(train_counter, train_losses, color='blue')
-  plt.scatter(test_counter, test_losses, color='red')
+  plt.plot(test_counter, test_losses, color='red')
   plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
-  plt.xlabel('number of training examples seen')
-  plt.ylabel('negative log likelihood loss')
+  plt.xlabel('Number of training examples seen')
+  plt.ylabel('Negative log likelihood loss')
   plt.savefig('loss.png')
   print("Loss curve is saved as loss.png")
   return "Loss curve is saved as loss.png"
