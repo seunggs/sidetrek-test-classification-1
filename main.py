@@ -7,7 +7,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
-
+from typing import Callable, Any, Dict, Tuple, List
+from flytekit.types.file import PythonPickledFile
 
 # @dataclass
 # class Hyperparameters(object):
@@ -20,17 +21,18 @@ import matplotlib.pyplot as plt
 #   log_interval
 #   random_seed
 #   """
-#   n_epochs = 3
-#   batch_size_train = 64
-#   batch_size_test = 1000
-#   learning_rate = 0.01
-#   momentum = 0.5
-#   log_interval = 10
-#   random_seed = 42
-#   norm1 = 0.1307
-#   norm2 = 0.3081
+#   n_epochs: int = 5
+#   batch_size_train: int = 64
+#   batch_size_test: int = 1000
+#   learning_rate: float = 0.01
+#   momentum: float = 0.5
+#   log_interval: int = 10
+#   random_seed: int = 42
+#   norm1: int = 0.1307
+#   norm2: int = 0.3081
 
-n_epochs = 3
+
+n_epochs = 5
 batch_size_train = 64
 batch_size_test = 1000
 learning_rate = 0.01
@@ -45,7 +47,7 @@ torch.manual_seed(random_seed)
 
 
 # Loading the datasets
-def load_dataset(norm1, norm2, batch_size_train, batch_size_test):
+def load_dataset(norm1: float, norm2: float, batch_size_train: int, batch_size_test: int) -> Tuple[torch.utils.data.dataloader.DataLoader, torch.utils.data.dataloader.DataLoader]:
   # Loading train dataset
   train_loader = torch.utils.data.DataLoader(
   torchvision.datasets.MNIST('files/', train=True, download=True,
@@ -66,42 +68,42 @@ def load_dataset(norm1, norm2, batch_size_train, batch_size_test):
 
 train_loader, test_loader = load_dataset(norm1, norm2, batch_size_train, batch_size_test)
 
-# examples = enumerate(test_loader)
-# batch_idx, (example_data, example_targets) = next(examples)
-
 
 # Building network
 def build_network():
   class Net(nn.Module):
-      def __init__(self):
-          super(Net, self).__init__()
-          self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-          self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-          self.conv2_drop = nn.Dropout2d()
-          self.fc1 = nn.Linear(320, 50)
-          self.fc2 = nn.Linear(50, 10)
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.conv2_drop = nn.Dropout2d()
+        self.fc1 = nn.Linear(320, 50)
+        self.fc2 = nn.Linear(50, 10)
 
-      def forward(self, x):
-          x = F.relu(F.max_pool2d(self.conv1(x), 2))
-          x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-          x = x.view(-1, 320)
-          x = F.relu(self.fc1(x))
-          x = F.dropout(x, training=self.training)
-          x = self.fc2(x)
-          return F.log_softmax(x)
+    def forward(self, x):
+      x = F.relu(F.max_pool2d(self.conv1(x), 2))
+      x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+      x = x.view(-1, 320)
+      x = F.relu(self.fc1(x))
+      x = F.dropout(x, training=self.training)
+      x = self.fc2(x)
+      return F.log_softmax(x)
   return Net()
 
 network = build_network()
 
 # Creating the optimizer
-def create_optimizer(learning_rate, momentum):
-  return optim.SGD(network.parameters(), lr=learning_rate,
-                        momentum=momentum)
+def create_optimizer(learning_rate: float, momentum: float) -> Dict:
+  return optim.SGD(network.parameters(), lr=learning_rate, momentum=momentum)
 
 optimizer = create_optimizer(learning_rate, momentum)
 
 # Training model on train data
-def train_model(n_epochs, network, train_loader, optimizer, log_interval):
+def train_model(n_epochs: int, 
+                network: PythonPickledFile,
+                train_loader: torch.utils.data.dataloader.DataLoader, 
+                optimizer: Dict, 
+                log_interval: int) -> Tuple[Callable, PythonPickledFile, List[int], List[float]]:
   train_losses = []
   train_counter = []
   # Training model
@@ -126,10 +128,10 @@ def train_model(n_epochs, network, train_loader, optimizer, log_interval):
 train, network, train_counter, train_losses = train_model(n_epochs, network, train_loader, optimizer, log_interval)
 
 # Testing model on test data
-def test_model(n_epochs, network, train_loader, test_loader):
+def create_training_loop(n_epochs: int, network: PythonPickledFile, train_loader: torch.utils.data.dataloader.DataLoader, test_loader: torch.utils.data.dataloader.DataLoader) -> Tuple[str, List[int], List[float]]:
   test_losses = []
   test_counter = [i*len(train_loader.dataset) for i in range(n_epochs + 1)]
-
+  # Creting test() function
   def test():
     network.eval()
     test_loss = 0
@@ -147,17 +149,17 @@ def test_model(n_epochs, network, train_loader, test_loader):
       100. * correct / len(test_loader.dataset)))
     print(result)
     return result, test_losses
-  result, test_losses = test()
-  # test()
   for epoch in range(1, n_epochs + 1):
     train(epoch)
     test()
+  result, test_losses = test()
   return result, test_counter, test_losses
 
-result, test_counter, test_losses = test_model(n_epochs, network, train_loader, test_loader)
+result, test_counter, test_losses = create_training_loop(n_epochs, network, train_loader, test_loader)
+
 
 # Plotting and saving the loss
-def save_loss(train_counter, train_losses, test_counter, test_losses):
+def save_loss(train_counter: int, train_losses: List[float], test_counter: List[int], test_losses: List[float]) -> str:
   fig = plt.figure(figsize=(8,5))
   plt.plot(train_counter, train_losses, color='blue')
   plt.scatter(test_counter, test_losses, color='red')
@@ -172,7 +174,7 @@ save_loss(train_counter, train_losses, test_counter, test_losses)
 
 
 # Predicting digits
-def predict_digits(test_loader, network):
+def predict_digits(test_loader: torch.utils.data.dataloader.DataLoader, network: PythonPickledFile) -> str:
   examples = enumerate(test_loader)
   batch_idx, (example_data, example_targets) = next(examples)
   with torch.no_grad():
@@ -193,7 +195,7 @@ def predict_digits(test_loader, network):
 predict_digits(test_loader, network)
 
 # Saving model
-def save_model(network):
+def save_model(network: PythonPickledFile) -> str:
   torch.save(network.state_dict(), 'model.pth')
   print("Model is saved as model.pth")
   return "Model is saved as model.pth"
@@ -201,7 +203,7 @@ def save_model(network):
 save_model(network)
 
 # Saving optimizer
-def save_optimizer(optimizer):
+def save_optimizer(optimizer: Dict) -> str:
   torch.save(optimizer.state_dict(), 'optimizer.pth')
   print("Optimizer is saved as optimizer.pth")
   return "Optimizer is saved as optimizer.pth"
