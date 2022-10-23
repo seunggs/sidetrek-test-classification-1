@@ -36,15 +36,15 @@ class Hyperparameters(object):
   norm1: int = 0.1307
   norm2: int = 0.3081
 
-n_epochs = 3
-batch_size_train = 64
-batch_size_test = 1000
-learning_rate = 0.01
-momentum = 0.5
-log_interval = 10
-random_seed = 42
-norm1 = 0.1307
-norm2 = 0.3081
+# n_epochs = 3
+# batch_size_train = 64
+# batch_size_test = 1000
+# learning_rate = 0.01
+# momentum = 0.5
+# log_interval = 10
+# random_seed = 42
+# norm1 = 0.1307
+# norm2 = 0.3081
 
 ### Creating the network
 class Net(nn.Module):
@@ -131,19 +131,6 @@ def train(n_epochs: int,
         (batch_idx*64) + ((n_epochs-1)*len(train_loader.dataset)))
   return train_counter, train_losses
 
-# train_counter, train_losses = train(n_epochs, network, train_loader, optimizer)
-
-### Training model on train data
-# def train_model(n_epochs: int, 
-#                 network: PythonPickledFile,
-#                 train_loader: torch.utils.data.dataloader.DataLoader, 
-#                 optimizer: Dict, 
-#                 log_interval: int) -> Tuple[PythonPickledFile, List[int], List[float]]:
-#   train_losses = []
-#   train_counter = []
-#   train(n_epochs, network, train_loader, optimizer, train_losses, train_counter)
-#   return network, train_counter, train_losses
-# network, train_counter, train_losses = train_model(n_epochs, network, train_loader, optimizer, log_interval)
 
 ### Creting test() function
 def test(n_epochs: int,
@@ -168,7 +155,6 @@ def test(n_epochs: int,
     100. * correct / len(test_loader.dataset)))
   print(result)
   return result, test_losses, test_counter
-
 
 
 ### Testing model on test data
