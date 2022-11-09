@@ -94,8 +94,7 @@ def load_dataset(norm1: float,
 def create_optimizer(network: PythonPickledFile, learning_rate: float, momentum: float) -> Dict:
   return optim.SGD(network.parameters(), lr=learning_rate, momentum=momentum)
 
-optimizer = create_optimizer(network, hp.learning_rate, hp.momentum)
-train_loader, test_loader = load_dataset(hp.norm1, hp.norm2, hp.batch_size_train, hp.batch_size_test, hp.random_seed)
+
 
 train_losses = []
 train_counter = []
@@ -159,31 +158,12 @@ def create_training_loop(n_epochs: int,
                          train_counter: List[int],
                          train_loader: torch.utils.data.dataloader.DataLoader, 
                          test_loader: torch.utils.data.dataloader.DataLoader) -> Tuple[List[int], List[float], List[int], List[float]]:
-  """
-  Creates training loop.
-
-  args:
-    n_epochs: number of epochs
-    network: model
-    optimizer: Stochastic Gradient Descent optimizer
-    train_losses: initially empty list
-    train_counter: initially empty list
-    train_loader: Dataloader created by load_dataset function 
-    test_loader: Dataloader created by load_dataset function 
-
-  returns:
-    test_counter: returned after processing in test() function
-    test_losses: returned after processing in test() function
-    train_counter: returned after processing in train() function
-    train_losses: returned after processing in train() function
-
-  """
+ 
   for epoch in range(1, n_epochs + 1):
     train(epoch, network, train_loader, optimizer)
     test(n_epochs, network, test_loader, train_loader)
   return test_counter, test_losses, train_counter, train_losses
 
-create_training_loop(hp.n_epochs, network, optimizer, train_losses, train_counter, train_loader, test_loader)
 
 ### Plotting and saving the loss
 def save_loss(train_counter: List[int],
@@ -230,3 +210,34 @@ def save_optimizer(optimizer: Dict) -> FlyteFile[typing.TypeVar("pth")]:
   print("Optimizer is saved as optimizer.pth")
   return torch.save(optimizer.state_dict(), 'optimizer.pth')
 
+### Creating Workflow
+def create_workflow(network: PythonPickledFile,
+                    learning_rate: float,
+                    momentum: float,
+                    norm1: float, 
+                    norm2: float, 
+                    batch_size_train: int, 
+                    batch_size_test: int, 
+                    random_seed: int, 
+                    n_epochs: int) -> Tuple[FlyteFile[typing.TypeVar("png")],
+                                            FlyteFile[typing.TypeVar("png")],
+                                            FlyteFile[typing.TypeVar("pth")],
+                                            FlyteFile[typing.TypeVar("pth")]]:
+  optimizer = create_optimizer(network, learning_rate, momentum)
+  train_loader, test_loader = load_dataset(norm1, norm2, batch_size_train, batch_size_test, random_seed)
+  create_training_loop(n_epochs, network, optimizer, train_losses, train_counter, train_loader, test_loader)
+  return (save_loss(train_counter, train_losses, test_counter, test_losses),
+          predict_digits(test_loader, network),
+          save_model(network),
+          save_optimizer(optimizer))
+
+
+create_workflow(network = network,
+                learning_rate= hp.learning_rate,
+                momentum = hp.momentum,
+                norm1 = hp.norm1, 
+                norm2 = hp.norm2, 
+                batch_size_train = hp.batch_size_train, 
+                batch_size_test = hp.batch_size_test,  
+                random_seed = hp.random_seed, 
+                n_epochs = hp.n_epochs)
