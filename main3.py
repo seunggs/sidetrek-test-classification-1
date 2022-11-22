@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torchvision
 from torch.utils.data import DataLoader, random_split
 import pytorch_lightning as pl
-from flytekit.types.file import PythonPickledFile
+from flytekit.types.file import FlyteFile
 from torchmetrics import Accuracy
 import matplotlib.pyplot as plt
 
@@ -111,7 +111,7 @@ def load_test_data(norm1, norm2, batch_size_test):
 # Tasks
 TrainingOutputs = typing.NamedTuple(
     "TrainingOutputs",
-    model_state=PythonPickledFile,
+    model_state=FlyteFile,
 )
 
 
@@ -125,7 +125,7 @@ def train_task(hp: Hyperparameters) -> TrainingOutputs:
 
     torch.save(model.state_dict(), MODEL_PATH)
 
-    return TrainingOutputs(model_state=PythonPickledFile(MODEL_PATH))
+    return TrainingOutputs(model_state=FlyteFile(MODEL_PATH))
 
 
 def test_task(hp: Hyperparameters) -> TrainingOutputs:

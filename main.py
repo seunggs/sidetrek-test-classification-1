@@ -229,4 +229,3 @@ def save_model(network: PythonPickledFile) -> FlyteFile[typing.TypeVar("pth")]:
 def save_optimizer(optimizer: Dict) -> FlyteFile[typing.TypeVar("pth")]:
   print("Optimizer is saved as optimizer.pth")
   return torch.save(optimizer.state_dict(), 'optimizer.pth')
-
