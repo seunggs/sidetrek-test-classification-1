@@ -1,5 +1,6 @@
 import typing
-from dataclasses import dataclass, dataclass_json
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
