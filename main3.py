@@ -1,5 +1,5 @@
 import typing
-from dataclasses import dataclass
+from dataclasses import dataclass, dataclass_json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,6 +17,7 @@ MODEL_PATH = "model/mnist.pt"
 accuracy = Accuracy()
 
 
+@dataclass_json
 @dataclass
 class Hyperparameters:
     max_epochs: int = 5
