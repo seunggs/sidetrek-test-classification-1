@@ -117,7 +117,7 @@ TrainingOutputs = typing.NamedTuple(
 )
 
 
-def train_task(hp: Hyperparameters) -> TrainingOutputs:
+def train_mnist_task(hp: Hyperparameters) -> TrainingOutputs:
     train_loader, valid_loader = load_train_data(
         norm1=hp.norm1, norm2=hp.norm2, random_seed=hp.random_seed, batch_size_train=hp.batch_size_train, batch_size_valid=hp.batch_size_valid
     )
@@ -130,10 +130,10 @@ def train_task(hp: Hyperparameters) -> TrainingOutputs:
     return TrainingOutputs(model_state=FlyteFile(MODEL_PATH))
 
 
-def test_task(hp: Hyperparameters) -> TrainingOutputs:
-    test_loader = load_test_data(norm1=hp.norm1, norm2=hp.norm2, batch_size_test=hp.batch_size_test)
-    trainer = pl.Trainer(log_every_n_steps=hp.log_interval, max_epochs=hp.max_epochs)
-    trainer.test(dataloaders=test_loader)
+# def test_mnist_task(hp: Hyperparameters) -> TrainingOutputs:
+#     test_loader = load_test_data(norm1=hp.norm1, norm2=hp.norm2, batch_size_test=hp.batch_size_test)
+#     trainer = pl.Trainer(log_every_n_steps=hp.log_interval, max_epochs=hp.max_epochs)
+#     trainer.test(dataloaders=test_loader)
 
 
 def get_sample(hp: Hyperparameters):
@@ -160,4 +160,4 @@ def test_sample():
 
 
 if __name__ == "__main__":
-    train_task(hp=Hyperparameters())
+    train_mnist_task(hp=Hyperparameters())
